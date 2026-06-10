@@ -47,4 +47,4 @@ codelens-rag/
 - Requires outbound internet for LLM API calls
 
 ---
-Built during internship · [Pawan sai G] · [www.linkedin.com/in/pawansai-g](#)
+Built during internship · Pawan sai G · [www.linkedin.com/in/pawansai-g](#)
