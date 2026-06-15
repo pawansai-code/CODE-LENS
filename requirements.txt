@@ -1,0 +1,9 @@
+langchain
+chromadb
+networkx
+streamlit
+ragas
+openai
+tiktoken
+radon
+pyyaml

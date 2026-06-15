@@ -1,0 +1,28 @@
+llm:
+  model: "claude-sonnet-4-20250514"
+  max_tokens: 1500
+
+embedding:
+  model: "text-embedding-3-small"
+  batch_size: 50
+
+retrieval:
+  top_k: 5
+  token_budget: 8000
+
+graph:
+  expansion_depth: 1
+  max_neighbors_per_chunk: 3
+
+ingestion:
+  max_chunk_tokens: 1500
+  exclude_patterns:
+    - "test_*"
+    - "*_test.py"
+    - "migrations/"
+
+chroma:
+  persist_dir: "./data/chroma_store"
+
+graph_store:
+  persist_path: "./data/dependency_graph.json"
