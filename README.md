@@ -1,26 +1,43 @@
-# CodeLens RAG
+# 🔍 AI CodeLens & Repo Chatter
+> Ask your codebase questions in plain English. Get answers with exact file and line citations, powered by local LLMs.
 
-Structure-Aware Codebase Intelligence using Retrieval-Augmented Generation.
+## What it does
+AI CodeLens & Repo Chatter lets you query any GitHub repository using natural language. It parses code using AST, retrieves context-aware answers using Pinecone, and streams responses directly to a split-pane dashboard with line-level highlights.
 
-## Setup
+## Tech Stack
+- **Vector Store** — Pinecone
+- **Relational DB** — PostgreSQL
+- **Orchestration** — LangChain (LCEL)
+- **LLM** — Ollama (`qwen2.5-coder`)
+- **Backend** — FastAPI + Python
+- **UI** — React + Vite
 
-1. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-2. Configure settings in `config.yaml`.
-3. Set your API keys as environment variables.
-
-## Running the Ingestion Pipeline
-
-To parse the repository and build the vector and graph stores:
+## Quick Start
 ```bash
-# CLI instructions will go here
+git clone https://github.com/yourusername/codelens-rag.git
+cd codelens-rag
+pip install -r requirements.txt
+
+# Launch Backend
+uvicorn main:app --reload
+
+# Launch UI
+cd ui && npm install && npm run dev
 ```
 
-## Running the UI
+## Example Questions
+- *"Where is the authentication logic?"*
+- *"What functions call the database connection?"*
+- *"What breaks if I change the User model?"*
 
-Start the Streamlit chat interface:
-```bash
-streamlit run ui/app.py
-```
+## Project Structure
+
+codelens-rag/
+├── ingestion/    # AST parser, repo cloning, embeddings
+├── query/        # Retrieval, LCEL routing, LLM caller
+├── evaluation/   # Evaluation scripts
+├── ui/           # React dashboard
+└── config.yaml   # Configuration parameters
+
+---
+Built during internship · Pawan sai G · [www.linkedin.com/in/pawansai-g](#)
