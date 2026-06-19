@@ -1,0 +1,55 @@
+📘 Day 1: Notebook 01 - Smart Code Ingestion
+
+Theme: Building the Foundation & AST-Aware Chunking
+
+
+
+Step 1: Built an automated script to programmatically clone GitHub repositories down to the local machine.
+
+Step 2: Implemented an AST (Abstract Syntax Tree) Parser to read the raw code. Instead of blindly splitting text every 500 words (which breaks functions in half), the parser intelligently chunks code at logical boundaries like classes and functions.
+
+Step 3: Extracted rich metadata for every chunk (like file paths, function names, and language types) to ensure the AI later knows exactly where the code came from.
+
+📙 Day 2: Notebook 02 - The Vector Database
+
+Theme: Transforming Code into Math (Embeddings)
+
+
+
+Step 1: Initialized local embeddings using the nomic-embed-text model via Ollama to keep everything 100% local and private.
+
+Step 2: Converted all the smart code chunks from Day 1 into high-dimensional vector embeddings.
+
+Step 3: Spun up a ChromaDB vector store and successfully loaded and persisted the embedded codebase for rapid semantic searching.
+
+📕 Day 3: Notebook 03 - Advanced Hybrid Retrieval
+
+Theme: Building the "Search Brain"
+
+
+
+Step 1: Implemented Hybrid Search. Combined traditional keyword search (BM25 Sparse Index) with semantic vector search (Chroma Dense Index) to ensure both exact keyword matches and conceptual matches are found.
+
+Step 2: Added an Intent Router using regex. The system automatically detects if a user is asking about a specific file (e.g., "index.js") and filters the search, or if they are asking a global architectural question.
+
+Step 3: Built a Cross-Encoder Reranker (ms-marco-MiniLM) to take the top 40 results from the hybrid search and strictly score/re-order them to find the absolute top 5 most relevant snippets.
+
+📗 Day 4: Notebook 04 - LLM Generation & The Final Pipeline
+
+Theme: Breathing Life into the AI (Local Generation)
+
+
+
+Step 1: Connected the pipeline to a local, offline LLM (qwen2.5-coder) using Ollama, guaranteeing zero API costs and zero data leaks.
+
+Step 2: Crafted a precise System Prompt Template in LangChain, instructing the AI to answer strictly based on the provided code context and avoid hallucinating.
+
+Step 3: Glued the Retrieval pipeline (Notebook 3) to the LLM (Notebook 4) using LCEL (LangChain Expression Language).
+
+Step 4: Implemented real-time token streaming so the AI prints out the explanation of the codebase smoothly, just like ChatGPT!
+
+
+
+
+
+actually ive started a new project 
