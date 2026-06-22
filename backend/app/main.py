@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.api import chat
+from app.api import chat, repo
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Code-Lens API", version="1.0.0")
@@ -13,6 +13,7 @@ app.add_middleware(
 )
 
 app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
+app.include_router(repo.router, prefix="/api/repo", tags=["repo"])
 
 @app.get("/")
 def read_root():

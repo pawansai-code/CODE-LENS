@@ -1,15 +1,16 @@
 // @ts-nocheck
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 // @ts-ignore
 import { SplitPane } from 'react-split-pane';
-import { Code2, BookOpen, ArrowLeft, ArrowRight, Home, GitBranch, Network, FileCode2, LayoutDashboard, Activity } from 'lucide-react';
+import { Code2, BookOpen, ArrowLeft, ArrowRight, Home, GitBranch, Network, FileCode2, LayoutDashboard, Activity, PanelRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { clsx } from 'clsx';
 import FileTree, { type FileNode } from '../components/FileTree';
 import EditorArea from '../components/EditorArea';
 import ChatPanel, { type Message } from '../components/ChatPanel';
 import ArchitectureGraph from '../components/ArchitectureGraph';
-import RepositoryDashboard from '../components/RepositoryDashboard';
+import RepositoryDashboard, { type MetricItem, type HotspotItem } from '../components/RepositoryDashboard';
+import { type Node, type Edge } from '@xyflow/react';
 
 type SideViewType = 'files' | 'metrics';
 type MainViewType = 'graph' | 'editor';
@@ -28,6 +29,64 @@ export default function Workspace() {
   // Chat State
   const [messages, setMessages] = useState<Message[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
+  // Repo Data State
+  const [isIngesting, setIsIngesting] = useState(false);
+  const [repoUrl, setRepoUrl] = useState("https://github.com/example/repo");
+  const [metricsData, setMetricsData] = useState<{ healthScore: string; metrics: MetricItem[]; hotspots: HotspotItem[] }>({ healthScore: "0%", metrics: [], hotspots: [] });
+  const [graphNodes, setGraphNodes] = useState<Node[]>([]);
+  const [graphEdges, setGraphEdges] = useState<Edge[]>([]);
+  const [fileSystem, setFileSystem] = useState<FileNode[]>([]);
+
+  const fetchRepoData = async () => {
+    try {
+      const metricsRes = await fetch('http://localhost:8001/api/repo/metrics');
+      const metrics = await metricsRes.json();
+      setMetricsData({
+        healthScore: metrics.health_score,
+        metrics: metrics.metrics,
+        hotspots: metrics.hotspots
+      });
+      
+      const graphRes = await fetch('http://localhost:8001/api/repo/graph');
+      const graph = await graphRes.json();
+      setGraphNodes(graph.nodes);
+      setGraphEdges(graph.edges);
+      
+      const filesRes = await fetch('http://localhost:8001/api/repo/files');
+      const files = await filesRes.json();
+      setFileSystem(files.children || []);
+    } catch (e) {
+      console.error("Failed to fetch repo data", e);
+    }
+  };
+
+  useEffect(() => {
+    fetchRepoData();
+  }, []);
+
+  const handleIngest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!repoUrl) return;
+    setIsIngesting(true);
+    try {
+      const res = await fetch('http://localhost:8001/api/repo/ingest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: repoUrl })
+      });
+      if (res.ok) {
+        await fetchRepoData();
+      } else {
+        alert("Ingestion failed");
+      }
+    } catch (e) {
+      alert("Error connecting to server");
+    } finally {
+      setIsIngesting(false);
+    }
+  };
 
   // File Tree interaction
   const handleSelectFile = (node: FileNode) => {
@@ -72,161 +131,170 @@ export default function Workspace() {
     handleSelectFile(newFile);
   };
 
-  const handleSendMessage = (content: string) => {
+  const handleSendMessage = async (content: string) => {
     const userMsg: Message = { id: Date.now().toString(), role: 'user', content };
     setMessages(prev => [...prev, userMsg]);
     setIsGenerating(true);
 
-    setTimeout(() => {
-      const responseText = "I found the logic you're looking for in `main.py`.\n\nHere is a reference to the specific code block: [main.py#L3-L5](#citation)\n\nLet me know if you need further explanation!";
+    try {
+      const response = await fetch('http://localhost:8001/api/chat/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: content })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
       const aiMsg: Message = { 
         id: (Date.now() + 1).toString(), 
         role: 'assistant', 
-        content: responseText,
-        telemetry: {
-          token_count: 842,
-          faithfulness: 0.92,
-          relevance: 0.88,
-          latency_ms: 1250,
-          retrieved_chunks: [
-            {
-              name: "/backend/main.py (read_root)",
-              content: "@app.get(\"/\")\ndef read_root():\n    return {\"Hello\": \"World\"}"
-            },
-            {
-              name: "/backend/schema.py (Item)",
-              content: "class Item(BaseModel):\n    name: str\n    price: float\n    is_offer: bool = None"
-            }
-          ]
-        }
+        content: data.answer,
+        telemetry: data.telemetry
       };
       
       setMessages(prev => [...prev, aiMsg]);
+    } catch (error) {
+      console.error("Failed to fetch chat response:", error);
+      const errorMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: "Error: Could not connect to the CodeLens AI Engine backend. Please ensure the FastAPI server is running."
+      };
+      setMessages(prev => [...prev, errorMsg]);
+    } finally {
       setIsGenerating(false);
-    }, 1500);
+    }
   };
 
   return (
-    <div className="h-screen w-screen bg-bg-primary text-text-primary overflow-hidden font-sans flex flex-col">
+    <div className="h-screen w-screen bg-white text-black overflow-hidden font-sans flex flex-col">
       {/* Sleek Top Header */}
-      <header className="h-14 shrink-0 border-b border-border bg-bg-secondary flex items-center px-6 justify-between shadow-sm z-10">
+      <header className="h-14 shrink-0 border-b border-black bg-white flex items-center px-6 justify-between z-10">
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer text-inherit no-underline">
-            <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-1.5 rounded-lg shadow-lg shadow-blue-500/20">
-              <Code2 size={20} className="text-white" />
+            <div className="p-1.5 border border-black rounded">
+              <Code2 size={20} className="text-black" />
             </div>
-            <h1 className="text-lg font-bold tracking-tight text-gray-100 flex items-center gap-2 m-0">
-              CodeLens <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">v0.1.0</span>
+            <h1 className="text-lg font-bold tracking-tight text-black flex items-center gap-2 m-0">
+              CodeLens <span className="text-xs font-medium px-2 py-0.5 border border-black text-black bg-gray-100">v0.1.0</span>
             </h1>
           </Link>
 
-          <div className="flex items-center gap-1 border-l border-white/10 pl-6">
-            <button onClick={() => navigate(-1)} className="p-1.5 rounded-md text-gray-400 hover:text-white hover:bg-white/10 transition-colors" title="Go Back">
+          <div className="flex items-center gap-1 border-l border-black pl-6">
+            <button onClick={() => navigate(-1)} className="p-1.5 text-black hover:bg-gray-100 border border-transparent hover:border-black transition-colors" title="Go Back">
               <ArrowLeft size={18} />
             </button>
-            <button onClick={() => navigate(1)} className="p-1.5 rounded-md text-gray-400 hover:text-white hover:bg-white/10 transition-colors" title="Go Forward">
+            <button onClick={() => navigate(1)} className="p-1.5 text-black hover:bg-gray-100 border border-transparent hover:border-black transition-colors" title="Go Forward">
               <ArrowRight size={18} />
-            </button>
-            <button onClick={() => navigate('/')} className="p-1.5 rounded-md text-gray-400 hover:text-white hover:bg-white/10 transition-colors" title="Go to Home">
-              <Home size={18} />
             </button>
           </div>
         </div>
 
-        {/* Global Repo Input */}
         <div className="flex-1 max-w-xl mx-8 flex items-center justify-center">
           <form 
-            onSubmit={(e) => { e.preventDefault(); alert("Repository loaded into workspace!"); }}
-            className="w-full max-w-lg relative flex items-center bg-[#0d1117] border border-gray-700/50 rounded-lg px-3 py-1.5 focus-within:ring-1 focus-within:ring-blue-500/50 focus-within:border-blue-500/50 transition-all group shadow-inner"
+            onSubmit={handleIngest}
+            className="w-full max-w-lg relative flex items-center bg-white border border-black px-3 py-1.5 focus-within:ring-1 focus-within:ring-black transition-all group"
           >
-            <GitBranch size={16} className="text-gray-500 mr-2 group-focus-within:text-blue-400 transition-colors" />
+            <GitBranch size={16} className="text-black mr-2" />
             <input 
               type="text"
-              defaultValue="https://github.com/example/repo"
+              value={repoUrl}
+              onChange={(e) => setRepoUrl(e.target.value)}
+              disabled={isIngesting}
               placeholder="Paste Git repository URL to load..."
-              className="bg-transparent border-none outline-none text-sm text-gray-200 placeholder-gray-600 w-full"
+              className="bg-transparent border-none outline-none text-sm text-black placeholder-gray-500 w-full disabled:opacity-50"
             />
-            <button type="submit" className="ml-2 text-[11px] font-bold uppercase tracking-wide bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white px-3 py-1 rounded transition-all border border-blue-500/30 hover:border-blue-500">
-              Load
+            <button type="submit" disabled={isIngesting} className="ml-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide bg-white text-black hover:bg-black hover:text-white disabled:opacity-50 px-3 py-1 border border-black transition-colors">
+              {isIngesting ? <div className="w-3 h-3 border-2 border-black border-t-transparent animate-spin" /> : null}
+              {isIngesting ? "Loading..." : "Load"}
             </button>
           </form>
         </div>
 
-        {/* Central View Toggle (Graph vs Editor) */}
-        <div className="flex items-center bg-[#0d1117] border border-gray-700/50 p-1 rounded-lg">
+        {/* Central View Toggle (Graph vs Editor) & Chat Toggle */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center bg-[#0d1117] border border-gray-700/50 p-1 rounded-lg">
+            <button
+              onClick={() => setMainView('graph')}
+              className={clsx(
+                "flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-md transition-colors",
+                mainView === 'graph' ? "bg-blue-600 text-white shadow-md" : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
+              )}
+            >
+              <Network size={14} /> Graph
+            </button>
+            <button
+              onClick={() => setMainView('editor')}
+              className={clsx(
+                "flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-md transition-colors",
+                mainView === 'editor' ? "bg-blue-600 text-white shadow-md" : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
+              )}
+            >
+              <FileCode2 size={14} /> Editor
+            </button>
+          </div>
+          
           <button
-            onClick={() => setMainView('graph')}
+            onClick={() => setIsChatOpen(!isChatOpen)}
             className={clsx(
-              "flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-md transition-colors",
-              mainView === 'graph' ? "bg-blue-600 text-white shadow-md" : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
+              "p-2 rounded-md border transition-colors",
+              isChatOpen 
+                ? "bg-black text-white border-black" 
+                : "bg-white text-black border-transparent hover:border-black hover:bg-gray-50"
             )}
+            title="Toggle AI Chat"
           >
-            <Network size={14} /> Graph
-          </button>
-          <button
-            onClick={() => setMainView('editor')}
-            className={clsx(
-              "flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-md transition-colors",
-              mainView === 'editor' ? "bg-blue-600 text-white shadow-md" : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
-            )}
-          >
-            <FileCode2 size={14} /> Editor
+            <PanelRight size={18} />
           </button>
         </div>
       </header>
 
       {/* Main Split Area */}
-      <div className="flex-1 relative flex min-h-0 w-full">
-        {/* @ts-ignore */}
-        <SplitPane 
-          split="vertical" 
-          minSize={300} 
-          defaultSize={parseInt(localStorage.getItem('splitPos') || '0', 10) || '50%'}
-          onChange={(size: number) => localStorage.setItem('splitPos', size.toString())}
-          className="!static"
-          pane1Style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
-          pane2Style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
-        >
-          {/* Left Pane: Explorer & Views */}
-          <div className="h-full bg-bg-secondary flex relative overflow-hidden">
-            
-            {/* Sidebar (FileTree or Dashboard) */}
-            <div className="w-64 shrink-0 bg-bg-tertiary border-r border-border flex flex-col">
-              {/* Sidebar Header with Toggle */}
-              <div className="p-2 border-b border-border bg-bg-secondary/50 flex items-center justify-between">
-                <div className="flex items-center bg-[#0d1117] border border-gray-700/50 p-1 rounded-md w-full">
-                  <button
-                    onClick={() => setSideView('metrics')}
-                    className={clsx(
-                      "flex-1 flex items-center justify-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded transition-colors",
-                      sideView === 'metrics' ? "bg-gray-700 text-white" : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
-                    )}
-                  >
-                    <Activity size={12} /> Metrics
-                  </button>
-                  <button
-                    onClick={() => setSideView('files')}
-                    className={clsx(
-                      "flex-1 flex items-center justify-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded transition-colors",
-                      sideView === 'files' ? "bg-gray-700 text-white" : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
-                    )}
-                  >
-                    <BookOpen size={12} /> Files
-                  </button>
-                </div>
+      <div className="flex-1 relative flex min-h-0 w-full overflow-hidden">
+        {/* Left Pane: Explorer & Views */}
+        <div className="flex-1 h-full bg-white flex relative overflow-hidden min-w-0">
+          {/* Sidebar (FileTree or Dashboard) */}
+          <div className="w-64 shrink-0 bg-white border-r border-black flex flex-col">
+            {/* Sidebar Header with Toggle */}
+            <div className="p-2 border-b border-black bg-gray-50 flex items-center justify-between">
+              <div className="flex items-center bg-white border border-black p-1 w-full">
+                <button
+                  onClick={() => setSideView('metrics')}
+                  className={clsx(
+                    "flex-1 flex items-center justify-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors",
+                    sideView === 'metrics' ? "bg-black text-white" : "text-black hover:bg-gray-100"
+                  )}
+                >
+                  <Activity size={12} /> Metrics
+                </button>
+                <button
+                  onClick={() => setSideView('files')}
+                  className={clsx(
+                    "flex-1 flex items-center justify-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors border-l border-black",
+                    sideView === 'files' ? "bg-black text-white" : "text-black hover:bg-gray-100"
+                  )}
+                >
+                  <BookOpen size={12} /> Files
+                </button>
               </div>
-
-              {/* Sidebar Content */}
-              {sideView === 'files' ? (
-                <FileTree onSelectFile={handleSelectFile} activeFileId={activeFileId || undefined} />
-              ) : (
-                <RepositoryDashboard />
-              )}
             </div>
 
-            {/* Dynamic Center Area */}
+            {/* Sidebar Content */}
+            {sideView === 'files' ? (
+              <FileTree fileSystem={fileSystem} onSelectFile={handleSelectFile} activeFileId={activeFileId || undefined} />
+            ) : (
+              <RepositoryDashboard healthScore={metricsData.healthScore} metrics={metricsData.metrics} hotspots={metricsData.hotspots} />
+            )}
+          </div>
+
+          {/* Dynamic Center Area */}
+          <div className="flex-1 h-full relative min-w-0 border-r border-transparent">
             {mainView === 'graph' ? (
-              <ArchitectureGraph />
+              <ArchitectureGraph initialNodes={graphNodes} initialEdges={graphEdges} />
             ) : (
               <EditorArea 
                 openFiles={openFiles}
@@ -237,15 +305,19 @@ export default function Workspace() {
               />
             )}
           </div>
+        </div>
 
-          {/* Right Pane: AI Chat */}
-          <ChatPanel 
-            messages={messages} 
-            onSendMessage={handleSendMessage} 
-            onCitationClick={handleCitationClick}
-            isGenerating={isGenerating}
-          />
-        </SplitPane>
+        {/* Right Pane: AI Chat */}
+        {isChatOpen && (
+          <div className="w-[350px] shrink-0 h-full bg-white relative">
+            <ChatPanel 
+              messages={messages} 
+              onSendMessage={handleSendMessage} 
+              onCitationClick={handleCitationClick}
+              isGenerating={isGenerating}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

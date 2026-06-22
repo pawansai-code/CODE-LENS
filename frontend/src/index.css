@@ -1,18 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg-primary: #0b0c10;
-  --color-bg-secondary: #12141a;
-  --color-bg-tertiary: #1a1c23;
-  --color-accent: #3b82f6;
-  --color-accent-hover: #2563eb;
-  --color-text-primary: #e2e8f0;
-  --color-text-secondary: #94a3b8;
-  --color-border: #1e293b;
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f8f9fa;
+  --color-bg-tertiary: #f1f3f5;
+  --color-accent: #000000;
+  --color-accent-hover: #333333;
+  --color-text-primary: #000000;
+  --color-text-secondary: #4b5563;
+  --color-border: #000000;
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
@@ -34,36 +34,33 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 4px;
+  background: #ccc;
+  border-radius: 0px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #999;
 }
 
-/* PrismJS Syntax Highlighting Theme (Dark) */
+/* PrismJS Syntax Highlighting Theme (B&W) */
 .prism-code {
   font-family: 'Fira Code', 'JetBrains Mono', Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
   font-size: 14px;
   line-height: 1.5;
   background-color: transparent !important;
+  color: #000 !important;
 }
 
 .token.comment,
 .token.prolog,
 .token.doctype,
 .token.cdata {
-  color: #64748b;
+  color: #666;
   font-style: italic;
 }
 
 .token.punctuation {
-  color: #94a3b8;
-}
-
-.token.namespace {
-  opacity: .7;
+  color: #333;
 }
 
 .token.property,
@@ -73,7 +70,8 @@ body {
 .token.constant,
 .token.symbol,
 .token.deleted {
-  color: #f472b6;
+  color: #000;
+  font-weight: bold;
 }
 
 .token.selector,
@@ -82,7 +80,7 @@ body {
 .token.char,
 .token.builtin,
 .token.inserted {
-  color: #a7f3d0;
+  color: #333;
 }
 
 .token.operator,
@@ -90,55 +88,55 @@ body {
 .token.url,
 .language-css .token.string,
 .style .token.string {
-  color: #93c5fd;
+  color: #000;
 }
 
 .token.atrule,
 .token.attr-value,
 .token.keyword {
-  color: #c084fc;
+  color: #000;
+  font-weight: bold;
 }
 
 .token.function,
 .token.class-name {
-  color: #fbbf24;
+  color: #000;
+  text-decoration: underline;
 }
 
 .token.regex,
 .token.important,
 .token.variable {
-  color: #fcd34d;
+  color: #000;
 }
 
 /* Highlighted Line Citations */
 .highlight-line {
-  background-color: rgba(59, 130, 246, 0.2);
-  border-left: 3px solid #3b82f6;
+  background-color: #f0f0f0;
+  border-left: 3px solid #000;
   padding-left: 5px;
   margin-left: -8px;
   display: block;
 }
 
-/* Glassmorphism Utilities */
+/* Glassmorphism Utilities Removed for minimal theme */
 .glass-panel {
-  background: rgba(18, 20, 26, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: #fff;
+  border: 1px solid #000;
 }
 
 /* Markdown Styling */
 .markdown-body h1,
 .markdown-body h2,
 .markdown-body h3 {
-  color: #f8fafc;
+  color: #000;
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
   font-weight: 600;
 }
 
 .markdown-body h1 { font-size: 1.5rem; }
-.markdown-body h2 { font-size: 1.25rem; border-bottom: 1px solid #1e293b; padding-bottom: 0.3rem;}
+.markdown-body h2 { font-size: 1.25rem; border-bottom: 1px solid #000; padding-bottom: 0.3rem;}
 .markdown-body h3 { font-size: 1.1rem; }
 
 .markdown-body p {
@@ -147,18 +145,19 @@ body {
 }
 
 .markdown-body code:not(pre code) {
-  background-color: rgba(148, 163, 184, 0.15);
-  color: #e2e8f0;
+  background-color: #f1f3f5;
+  color: #000;
   padding: 0.2rem 0.4rem;
-  border-radius: 0.25rem;
+  border: 1px solid #000;
+  border-radius: 0;
   font-family: 'Fira Code', monospace;
   font-size: 0.85em;
 }
 
 .markdown-body pre {
-  background-color: #0b0c10 !important;
-  border: 1px solid #1e293b;
-  border-radius: 0.5rem;
+  background-color: #fff !important;
+  border: 1px solid #000;
+  border-radius: 0;
   padding: 1rem;
   overflow-x: auto;
   margin-bottom: 1rem;

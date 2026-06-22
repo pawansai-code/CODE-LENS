@@ -9,3 +9,5 @@ rank_bm25
 pydantic
 pydantic-settings
 python-dotenv
+radon
+tiktoken
