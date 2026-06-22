@@ -9,8 +9,8 @@ AI CodeLens & Repo Chatter lets you query any GitHub repository using natural la
 - **Relational DB** - PostgreSQL
 - **Orchestration** - LangChain (LCEL)
 - **LLM** - Ollama (`qwen2.5-coder`)
-- **Backend** — FastAPI + Python
-- **UI** — React + Vite
+- **Backend** - FastAPI + Python
+- **UI** - React + Vite
 
 ## Quick Start
 ```bash
