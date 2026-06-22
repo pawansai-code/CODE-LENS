@@ -5,8 +5,8 @@
 AI CodeLens & Repo Chatter lets you query any GitHub repository using natural language. It parses code using AST, retrieves context-aware answers using Pinecone, and streams responses directly to a split-pane dashboard with line-level highlights.
 
 ## Tech Stack
-- **Vector Store** — Pinecone
-- **Relational DB** — PostgreSQL
+- **Vector Store** - Pinecone
+- **Relational DB** - PostgreSQL
 - **Orchestration** — LangChain (LCEL)
 - **LLM** — Ollama (`qwen2.5-coder`)
 - **Backend** — FastAPI + Python
