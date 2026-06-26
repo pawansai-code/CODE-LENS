@@ -45,7 +45,20 @@ class QueryProcessor:
         
         # 1. Connect to Pinecone
         import os
+        from pinecone import Pinecone, ServerlessSpec
+        
         self.pc = Pinecone(api_key=os.environ.get("PINECONE_API_KEY"))
+        
+        # Ensure Pinecone index exists before trying to query it
+        if self.index_name not in [idx.name for idx in self.pc.list_indexes()]:
+            print(f"[INFO] Creating Pinecone index '{self.index_name}'...")
+            self.pc.create_index(
+                name=self.index_name,
+                dimension=768,
+                metric="cosine",
+                spec=ServerlessSpec(cloud="aws", region="us-east-1")
+            )
+            
         self.vectorstore = PineconeVectorStore(
             index_name=self.index_name,
             embedding=self.embeddings

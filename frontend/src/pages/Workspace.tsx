@@ -33,6 +33,7 @@ export default function Workspace() {
 
   // Repo Data State
   const [isIngesting, setIsIngesting] = useState(false);
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
   const [repoUrl, setRepoUrl] = useState("https://github.com/example/repo");
   const [metricsData, setMetricsData] = useState<{ healthScore: string; metrics: MetricItem[]; hotspots: HotspotItem[] }>({ healthScore: "0%", metrics: [], hotspots: [] });
   const [graphNodes, setGraphNodes] = useState<Node[]>([]);
@@ -69,22 +70,38 @@ export default function Workspace() {
   const handleIngest = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!repoUrl) return;
+    
+    const controller = new AbortController();
+    setAbortController(controller);
     setIsIngesting(true);
+    
     try {
       const res = await fetch('http://localhost:8001/api/repo/ingest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: repoUrl })
+        body: JSON.stringify({ url: repoUrl }),
+        signal: controller.signal
       });
       if (res.ok) {
         await fetchRepoData();
       } else {
         alert("Ingestion failed");
       }
-    } catch (e) {
-      alert("Error connecting to server");
+    } catch (e: any) {
+      if (e.name === 'AbortError') {
+        console.log("Ingestion cancelled by user.");
+      } else {
+        alert("Error connecting to server");
+      }
     } finally {
       setIsIngesting(false);
+      setAbortController(null);
+    }
+  };
+
+  const handleCancelIngest = () => {
+    if (abortController) {
+      abortController.abort();
     }
   };
 
@@ -208,10 +225,19 @@ export default function Workspace() {
               placeholder="Paste Git repository URL to load..."
               className="bg-transparent border-none outline-none text-sm text-black placeholder-gray-500 w-full disabled:opacity-50"
             />
-            <button type="submit" disabled={isIngesting} className="ml-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide bg-white text-black hover:bg-black hover:text-white disabled:opacity-50 px-3 py-1 border border-black transition-colors">
+            <button type="submit" disabled={isIngesting} className="ml-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide bg-white text-black hover:bg-black hover:text-white disabled:opacity-50 px-3 py-1 border border-black transition-colors shrink-0">
               {isIngesting ? <div className="w-3 h-3 border-2 border-black border-t-transparent animate-spin" /> : null}
               {isIngesting ? "Loading..." : "Load"}
             </button>
+            {isIngesting && (
+              <button 
+                type="button" 
+                onClick={handleCancelIngest}
+                className="ml-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide bg-white text-red-600 hover:bg-red-600 hover:text-white px-3 py-1 border border-red-600 transition-colors shrink-0"
+              >
+                Cancel
+              </button>
+            )}
           </form>
         </div>
 
@@ -302,6 +328,10 @@ export default function Workspace() {
                 onTabClick={handleTabClick}
                 onTabClose={handleTabClose}
                 onContentChange={handleContentChange}
+                onCloseAllTabs={() => {
+                  setOpenFiles([]);
+                  setActiveFileId(null);
+                }}
               />
             )}
           </div>

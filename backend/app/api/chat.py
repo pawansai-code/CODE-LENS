@@ -16,10 +16,8 @@ from query.engine import QueryProcessor
 router = APIRouter()
 
 # Instantiate globally to avoid cold starts on every API call.
-# Connects to the test ChromaDB populated during Phase 1 testing.
 try:
-    db_path = str(project_root / "data" / "test_chroma_db")
-    engine = QueryProcessor(persist_directory=db_path, collection_name="test_collection")
+    engine = QueryProcessor(index_name="code-lens")
 except Exception as e:
     print(f"Warning: Engine failed to initialize. Error: {e}")
     engine = None

@@ -13,7 +13,8 @@ from app.models.schemas import IngestRequest, MetricsResponse, MetricItem, Hotsp
 from ingestion.loader import RepoLoader
 from ingestion.parser import ASTParser
 from ingestion.indexer import EmbeddingGenerator, VectorStoreWriter
-from app.api.chat import engine, db_path
+from app.api.chat import engine
+from app.models.db import SessionLocal, CodeChunkModel
 
 router = APIRouter()
 
@@ -42,10 +43,10 @@ async def ingest_repo(request: IngestRequest):
             except Exception as e:
                 print(f"[WARNING] Could not delete old collection: {e}")
         
-        print("[INFO] Writing embeddings to ChromaDB...")
-        writer = VectorStoreWriter(persist_dir=db_path, collection_name="test_collection")
+        print("[INFO] Writing to PostgreSQL and Pinecone...")
+        writer = VectorStoreWriter(collection_name="code-lens")
         writer.write(chunks, generator.get_embeddings_model())
-        print("[INFO] ChromaDB write complete.")
+        print("[INFO] Write complete.")
         
         # Reload the AI Engine so it knows about the new repo
         if engine:
@@ -65,31 +66,30 @@ async def ingest_repo(request: IngestRequest):
 
 @router.get("/metrics", response_model=MetricsResponse)
 async def get_metrics():
-    if not engine or not engine.vectorstore:
-        return MetricsResponse(health_score="0%", metrics=[], hotspots=[])
-        
+    session = SessionLocal()
     try:
-        db_docs = engine.vectorstore.get(include=['metadatas'])
+        db_chunks = session.query(CodeChunkModel).all()
     except Exception as e:
-        print(f"Error fetching metrics from vectorstore: {e}")
+        print(f"Error fetching metrics from database: {e}")
+        session.close()
         return MetricsResponse(health_score="0%", metrics=[], hotspots=[])
         
-    metadatas = db_docs.get('metadatas', [])
+    session.close()
     
-    total_chunks = len(metadatas)
+    total_chunks = len(db_chunks)
     if total_chunks == 0:
         return MetricsResponse(health_score="0%", metrics=[], hotspots=[])
         
-    total_tokens = sum([m.get("token_count", 0) for m in metadatas])
-    avg_complexity = sum([m.get("complexity_score", 1) for m in metadatas]) / total_chunks
+    total_tokens = sum([c.token_count for c in db_chunks if c.token_count])
+    avg_complexity = sum([c.complexity_score for c in db_chunks if c.complexity_score]) / total_chunks
     
     # Calculate hotspots
     file_complexities = {}
-    for m in metadatas:
-        fp = m.get("file_path", "unknown")
+    for c in db_chunks:
+        fp = c.file_path or "unknown"
         # Extract just the filename for cleaner UI
         short_name = os.path.basename(fp.replace("\\", "/"))
-        score = m.get("complexity_score", 1)
+        score = c.complexity_score or 1
         file_complexities[short_name] = file_complexities.get(short_name, 0) + score
         
     hotspots = []
@@ -108,20 +108,19 @@ async def get_metrics():
 
 @router.get("/graph", response_model=GraphResponse)
 async def get_graph():
-    # Simple graph generation from metadatas
-    if not engine or not engine.vectorstore:
-        return GraphResponse(nodes=[], edges=[])
-        
+    # Simple graph generation from database
+    session = SessionLocal()
     try:
-        db_docs = engine.vectorstore.get(include=['metadatas'])
+        db_chunks = session.query(CodeChunkModel.file_path).distinct().all()
     except Exception as e:
-        print(f"Error fetching graph from vectorstore: {e}")
+        print(f"Error fetching graph from database: {e}")
+        session.close()
         return GraphResponse(nodes=[], edges=[])
         
-    metadatas = db_docs.get('metadatas', [])
+    session.close()
     
     # Extract unique files
-    files = list(set([m.get("file_path", "unknown") for m in metadatas]))
+    files = list(set([c[0] for c in db_chunks if c[0]]))
     
     nodes = []
     edges = []

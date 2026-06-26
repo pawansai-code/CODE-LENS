@@ -1,5 +1,5 @@
-import React from 'react';
-import { X } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { X, MoreVertical, Trash2 } from 'lucide-react';
 import { clsx } from 'clsx';
 import Editor from '@monaco-editor/react';
 import type { FileNode } from './FileTree';
@@ -10,6 +10,7 @@ interface EditorAreaProps {
   onTabClick: (fileId: string) => void;
   onTabClose: (e: React.MouseEvent, fileId: string) => void;
   onContentChange: (fileId: string, newContent: string | undefined) => void;
+  onCloseAllTabs: () => void;
 }
 
 export default function EditorArea({
@@ -18,7 +19,20 @@ export default function EditorArea({
   onTabClick,
   onTabClose,
   onContentChange,
+  onCloseAllTabs,
 }: EditorAreaProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   
   const activeFile = openFiles.find(f => f.id === activeFileId);
 
@@ -26,8 +40,9 @@ export default function EditorArea({
     <div className="flex-1 flex flex-col min-w-0 bg-white h-full overflow-hidden">
       {/* Tabs Bar */}
       {openFiles.length > 0 && (
-        <div className="flex overflow-x-auto bg-gray-50 shrink-0 border-b border-black hide-scrollbar">
-          {openFiles.map((file) => {
+        <div className="flex bg-gray-50 shrink-0 border-b border-black items-stretch h-[37px]">
+          <div className="flex-1 flex overflow-x-auto hide-scrollbar">
+            {openFiles.map((file) => {
             const isActive = file.id === activeFileId;
             return (
               <div
@@ -53,6 +68,31 @@ export default function EditorArea({
               </div>
             );
           })}
+          </div>
+          
+          {/* Tab Actions Menu */}
+          <div className="relative border-l border-black flex items-center justify-center px-2 bg-gray-50 shrink-0 z-10" ref={menuRef}>
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="p-1 hover:bg-gray-200 transition-colors rounded text-black"
+              title="More Actions"
+            >
+              <MoreVertical size={16} />
+            </button>
+            {isMenuOpen && (
+              <div className="absolute top-[100%] right-0 w-36 bg-white border border-black shadow-lg py-1">
+                <button
+                  onClick={() => {
+                    onCloseAllTabs();
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-black hover:bg-black hover:text-white flex items-center gap-2 transition-colors"
+                >
+                  <Trash2 size={14} /> Close All
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
