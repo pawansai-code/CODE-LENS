@@ -102,15 +102,17 @@ class QueryProcessor:
         
         # 4. Load LLM and Prompt Template
         print("Loading Local LLM (qwen2.5-coder:1.5b)...")
-        self.llm = Ollama(model="qwen2.5-coder:1.5b")
+        self.llm = Ollama(model="qwen2.5-coder:1.5b", temperature=0.0)
         
         system_template = """
-You are an expert AI coding assistant for the CodeLens platform. 
-You are provided with a user's question and a set of relevant code snippets from the codebase.
+You are an expert AI coding assistant for the CodeLens platform.
+You will be provided with a user's question and a set of strictly retrieved code snippets from the codebase.
 
-Answer the user's question based ONLY on the provided code snippets. 
-If the answer is not contained in the context, clearly state: "I cannot answer this based on the provided codebase."
-When referencing code, briefly mention the file name if it is helpful.
+CRITICAL INSTRUCTIONS:
+1. Answer the user's question using ONLY the provided code snippets. Do not guess or hallucinate.
+2. If the answer is not contained in the context, you MUST say exactly: "I cannot answer this based on the provided codebase."
+3. Think step-by-step before answering.
+4. When you reference code, you MUST cite the file name clearly (e.g., "In `file_path.py`:").
 
 Context Code Snippets:
 {context}
@@ -206,34 +208,12 @@ User Question: {question}
         return chunks
         
     def assemble_context(self, chunks: List[CodeChunk]) -> str:
-        """Formats chunks as context string with citation markers, using full file context if available."""
-        from pathlib import Path
-        repo_dir = Path(__file__).parent.parent / "data" / "repo"
-        
+        """Formats chunks as context string with citation markers. Keeps context window small."""
         context_texts = []
-        seen_files = set()
         
-        for c in chunks:
-            # We want to give the LLM the full file context, but only once per file
-            if c.file_path in seen_files:
-                continue
-            seen_files.add(c.file_path)
-            
-            # Try to read the full file from our persistent repo directory
-            full_path = repo_dir / c.file_path
-            
-            if full_path.exists() and full_path.is_file():
-                try:
-                    content = full_path.read_text(encoding="utf-8")
-                    # If the file is extremely large, fall back to just the chunk to save tokens
-                    if len(content) > 30000:
-                        context_texts.append(f"--- File: {c.file_path} (Snippet for context limits) ---\n{c.source_code}")
-                    else:
-                        context_texts.append(f"--- File: {c.file_path} (Full File Context) ---\n{content}")
-                except Exception:
-                    context_texts.append(f"--- File: {c.file_path} (Snippet) ---\n{c.source_code}")
-            else:
-                context_texts.append(f"--- File: {c.file_path} (Snippet) ---\n{c.source_code}")
+        for i, c in enumerate(chunks):
+            # Only append the precise snippet to avoid overflowing the 1.5b model's context window
+            context_texts.append(f"--- Snippet {i+1} from File: {c.file_path} (Lines {c.start_line}-{c.end_line}) ---\n{c.source_code}")
                 
         return "\n\n".join(context_texts)
         

@@ -53,3 +53,27 @@ Step 4: Implemented real-time token streaming so the AI prints out the explanati
 
 
 actually ive started a new project 
+
+
+Neo-Brutalist(color used in the app--old)
+
+
+
+1. The "Strawberry Mint" Palette (Highly Recommended)
+This pairs a soft romantic pink with a cool, refreshing mint green. It's vibrant but easy on the eyes.
+
+Primary (Buttons/Highlights): Pastel Pink bg-pink-200 (#fbcfe8) or bg-pink-300 (#f9a8d4)
+Secondary (Accents/Tags): Pastel Mint bg-green-200 (#bbf7d0)
+Background (Canvas): Off-white or very light cream bg-slate-50 (#f8fafc)
+2. The "Sunset Lavender" Palette
+A slightly more developer-focused, calm vibe, but still very soft and beautiful.
+
+Primary (Buttons/Highlights): Pastel Lavender bg-purple-200 (#e9d5ff)
+Secondary (Accents/Tags): Pastel Peach/Orange bg-orange-200 (#fed7aa)
+Background (Canvas): Light Rose bg-rose-50 (#fff1f2)
+3. The "Retro Pastel" Palette
+This is a fun, highly energetic palette that looks amazing with the sharp black borders we just added to the chat.
+
+User Chat Bubbles: Pastel Blue bg-blue-200 (#bfdbfe)
+AI Chat Bubbles: Pastel Yellow bg-yellow-200 (#fef08a)
+Accent Buttons: Pastel Pink bg-pink-200 (#fbcfe8)

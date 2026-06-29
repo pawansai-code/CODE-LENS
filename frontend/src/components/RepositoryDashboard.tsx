@@ -27,18 +27,7 @@ export default function RepositoryDashboard({ healthScore, metrics, hotspots }: 
     }
   };
 
-  return (
     <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-white text-black">
-      {/* Overall Health Score */}
-      <div className="p-5 border border-black bg-white">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-black">Overall Health</h3>
-          <Activity size={18} className="text-black" />
-        </div>
-        <div className="text-3xl font-bold tracking-tight">{healthScore}</div>
-        <p className="text-xs text-gray-500 mt-1 uppercase">Based on repository analysis</p>
-      </div>
-
       {/* Key Metrics */}
       <div className="grid grid-cols-2 gap-3">
         {metrics.map((metric, i) => (
@@ -71,5 +60,4 @@ export default function RepositoryDashboard({ healthScore, metrics, hotspots }: 
         </div>
       </div>
     </div>
-  );
 }
