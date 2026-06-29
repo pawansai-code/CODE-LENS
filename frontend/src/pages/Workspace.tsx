@@ -30,6 +30,7 @@ export default function Workspace() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatExpanded, setIsChatExpanded] = useState(false);
 
   // Repo Data State
   const [isIngesting, setIsIngesting] = useState(false);
@@ -339,12 +340,14 @@ export default function Workspace() {
 
         {/* Right Pane: AI Chat */}
         {isChatOpen && (
-          <div className="w-[350px] shrink-0 h-full bg-white relative">
+          <div className={clsx("shrink-0 h-full bg-white relative transition-all duration-300", isChatExpanded ? "w-[600px]" : "w-[350px]")}>
             <ChatPanel 
               messages={messages} 
               onSendMessage={handleSendMessage} 
               onCitationClick={handleCitationClick}
               isGenerating={isGenerating}
+              isExpanded={isChatExpanded}
+              onToggleExpand={() => setIsChatExpanded(!isChatExpanded)}
             />
           </div>
         )}

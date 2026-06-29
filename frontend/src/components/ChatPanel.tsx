@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User } from 'lucide-react';
+import { Send, Bot, User, Maximize2, Minimize2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import AITelemetry, { type TelemetryData } from './AITelemetry';
@@ -16,9 +16,11 @@ interface ChatPanelProps {
   onSendMessage: (msg: string) => void;
   onCitationClick: (filename: string, lines: number[]) => void;
   isGenerating?: boolean;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
 }
 
-export default function ChatPanel({ messages, onSendMessage, onCitationClick, isGenerating }: ChatPanelProps) {
+export default function ChatPanel({ messages, onSendMessage, onCitationClick, isGenerating, isExpanded, onToggleExpand }: ChatPanelProps) {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -70,12 +72,21 @@ export default function ChatPanel({ messages, onSendMessage, onCitationClick, is
   };
 
   return (
-    <div className="flex flex-col h-full bg-white text-black border-l border-black">
-      <div className="px-6 py-4 border-b border-black bg-white flex items-center justify-between shadow-none">
+    <div className="flex flex-col h-full bg-white text-black border-l border-black min-w-0">
+      <div className="px-4 py-3 border-b border-black bg-white flex items-center justify-between shadow-none">
         <div className="flex items-center gap-2">
           <Bot size={18} className="text-black" />
-          <h2 className="font-bold tracking-tight m-0">CodeLens AI</h2>
+          <h2 className="font-bold tracking-tight m-0 text-sm">CodeLens AI</h2>
         </div>
+        {onToggleExpand && (
+          <button 
+            onClick={onToggleExpand}
+            className="p-1.5 hover:bg-gray-100 transition-colors border border-transparent hover:border-black rounded-sm text-black"
+            title={isExpanded ? "Collapse Chat" : "Expand Chat"}
+          >
+            {isExpanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+          </button>
+        )}
       </div>
 
       {/* Messages Area */}
@@ -91,12 +102,12 @@ export default function ChatPanel({ messages, onSendMessage, onCitationClick, is
         )}
 
         {messages.map((msg) => (
-          <div key={msg.id} className={`flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+          <div key={msg.id} className={`flex gap-3 w-full ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
             <div className="shrink-0 w-8 h-8 flex items-center justify-center border border-black bg-white text-black">
               {msg.role === 'user' ? <User size={16} /> : <Bot size={16} />}
             </div>
-            <div className={`flex flex-col max-w-[80%] ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
-              <div className="px-4 py-3 border border-black bg-white text-black">
+            <div className={`flex flex-col max-w-[85%] min-w-0 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+              <div className="px-4 py-3 border border-black bg-white text-black break-words overflow-x-auto text-sm w-full">
                 {renderMessageContent(msg.content)}
               </div>
             </div>
