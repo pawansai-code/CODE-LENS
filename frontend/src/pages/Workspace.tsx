@@ -9,17 +9,14 @@ import FileTree, { type FileNode } from '../components/FileTree';
 import EditorArea from '../components/EditorArea';
 import ChatPanel, { type Message } from '../components/ChatPanel';
 import ArchitectureGraph from '../components/ArchitectureGraph';
-import RepositoryDashboard, { type MetricItem, type HotspotItem } from '../components/RepositoryDashboard';
 import { type Node, type Edge } from '@xyflow/react';
 
-type SideViewType = 'files' | 'metrics';
 type MainViewType = 'graph' | 'editor';
 
 export default function Workspace() {
   const navigate = useNavigate();
   
   // UI View States
-  const [sideView, setSideView] = useState<SideViewType>('metrics');
   const [mainView, setMainView] = useState<MainViewType>('graph');
 
   // Editor State
@@ -284,38 +281,17 @@ export default function Workspace() {
       <div className="flex-1 relative flex min-h-0 w-full overflow-hidden">
         {/* Left Pane: Explorer & Views */}
         <div className="flex-1 h-full bg-white flex relative overflow-hidden min-w-0">
-          {/* Sidebar (FileTree or Dashboard) */}
+          {/* Sidebar (FileTree) */}
           <div className="w-64 shrink-0 bg-white border-r border-black flex flex-col">
-            {/* Sidebar Header with Toggle */}
-            <div className="p-2 border-b border-black bg-gray-50 flex items-center justify-between">
-              <div className="flex items-center bg-white border border-black p-1 w-full">
-                <button
-                  onClick={() => setSideView('metrics')}
-                  className={clsx(
-                    "flex-1 flex items-center justify-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors",
-                    sideView === 'metrics' ? "bg-black text-white" : "text-black hover:bg-gray-100"
-                  )}
-                >
-                  <Activity size={12} /> Metrics
-                </button>
-                <button
-                  onClick={() => setSideView('files')}
-                  className={clsx(
-                    "flex-1 flex items-center justify-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors border-l border-black",
-                    sideView === 'files' ? "bg-black text-white" : "text-black hover:bg-gray-100"
-                  )}
-                >
-                  <BookOpen size={12} /> Files
-                </button>
+            {/* Sidebar Header */}
+            <div className="p-3 border-b border-black bg-gray-50 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-black font-bold uppercase tracking-wider text-xs">
+                <BookOpen size={14} /> Explorer
               </div>
             </div>
 
             {/* Sidebar Content */}
-            {sideView === 'files' ? (
-              <FileTree fileSystem={fileSystem} onSelectFile={handleSelectFile} activeFileId={activeFileId || undefined} />
-            ) : (
-              <RepositoryDashboard healthScore={metricsData.healthScore} metrics={metricsData.metrics} hotspots={metricsData.hotspots} />
-            )}
+            <FileTree fileSystem={fileSystem} onSelectFile={handleSelectFile} activeFileId={activeFileId || undefined} />
           </div>
 
           {/* Dynamic Center Area */}
