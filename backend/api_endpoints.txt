@@ -1,0 +1,45 @@
+CodeLens API Endpoints
+Base URL: http://localhost:8001
+
+1. Chat API
+   Endpoint: POST /api/chat/
+   Description: Send a query to the AI engine to get a RAG-based answer.
+   Body (JSON):
+   {
+       "query": "What does the RepoLoader do?"
+   }
+
+2. Repository Ingestion
+   Endpoint: POST /api/repo/ingest
+   Description: Clone a GitHub repository, parse it, and build the vector database.
+   Body (JSON):
+   {
+       "url": "https://github.com/pawansai-code/Netflix-clone.git"
+   }
+
+3. Repository Metrics
+   Endpoint: GET /api/repo/metrics
+   Description: Retrieve parsed metrics, complexity scores, and hotspots for the Dashboard.
+   No body required.
+
+4. Repository Graph
+   Endpoint: GET /api/repo/graph
+   Description: Fetch the architecture graph nodes and edges.
+   No body required.
+
+5. Repository Files Tree
+   Endpoint: GET /api/repo/files
+   Description: Fetch the entire file system tree of the downloaded repository, including file contents for the editor.
+   No body required.
+
+
+
+
+API endpoints list :
+
+
+POST http://localhost:8001/api/chat/
+POST http://localhost:8001/api/repo/ingest
+GET http://localhost:8001/api/repo/metrics
+GET http://localhost:8001/api/repo/graph
+GET http://localhost:8001/api/repo/files
