@@ -1,9 +1,9 @@
 import urllib.request, urllib.error
 
 urls = [
-    'http://localhost:8000/api/repo/metrics',
-    'http://localhost:8000/api/repo/graph',
-    'http://localhost:8000/api/repo/files'
+    'http://localhost:8001/api/repo/metrics',
+    'http://localhost:8001/api/repo/graph',
+    'http://localhost:8001/api/repo/files'
 ]
 
 for url in urls:

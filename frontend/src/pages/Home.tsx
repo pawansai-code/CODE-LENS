@@ -11,12 +11,10 @@ export default function Home() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (repoUrl.trim()) {
-      // In a real app, you might validate or pass this via state/context
       navigate('/workspace');
     }
   };
 
-  // Background grid animation variants
   const gridVariants = {
     hidden: { opacity: 0 },
     visible: {
