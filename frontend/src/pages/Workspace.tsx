@@ -186,16 +186,16 @@ export default function Workspace() {
   };
 
   return (
-    <div className="h-screen w-screen bg-[#FFFDF7] text-black overflow-hidden font-sans flex flex-col">
+    <div className="h-screen w-screen bg-rose-50 text-black overflow-hidden font-sans flex flex-col">
       {/* Sleek Top Header */}
-      <header className="h-14 shrink-0 border-b border-black bg-[#FFDAB9] flex items-center px-6 justify-between z-10">
+      <header className="h-14 shrink-0 border-b border-black bg-purple-200 flex items-center px-6 justify-between z-10">
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer text-inherit no-underline">
             <div className="p-1.5 border border-black rounded bg-white">
               <Code2 size={20} className="text-black" />
             </div>
             <h1 className="text-lg font-bold tracking-tight text-black flex items-center gap-2 m-0">
-              CodeLens <span className="text-xs font-medium px-2 py-0.5 border border-black text-black bg-[#B4D8E7]">v0.1.0</span>
+              CodeLens <span className="text-xs font-medium px-2 py-0.5 border border-black text-black bg-orange-200">v0.1.0</span>
             </h1>
           </Link>
 
@@ -316,7 +316,7 @@ export default function Workspace() {
 
         {/* Right Pane: AI Chat */}
         {isChatOpen && (
-          <div className={clsx("shrink-0 h-full bg-[#FFFDF7] relative transition-all duration-300", isChatExpanded ? "w-[600px]" : "w-[350px]")}>
+          <div className={clsx("shrink-0 h-full bg-rose-50 relative transition-all duration-300", isChatExpanded ? "w-[600px]" : "w-[350px]")}>
             <ChatPanel 
               messages={messages} 
               onSendMessage={handleSendMessage} 
