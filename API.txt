@@ -1,4 +1,0 @@
-POST /api/repo/ingest HTTP/1.1
-GET /api/repo/metrics HTTP/1.1
-GET /api/repo/graph HTTP/1.1
-GET /api/repo/files HTTP/1.1
